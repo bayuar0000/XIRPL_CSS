@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Debugging Challenge - XI RPL</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#eef2ff;color:#1e293b}
+.hidden{display:none!important}.container{max-width:1250px;margin:auto;padding:18px}
+.card,.panel{background:#fff;border-radius:18px;padding:22px;box-shadow:0 8px 30px rgba(15,23,42,.08)}
+.start-card{max-width:650px;margin:70px auto;text-align:center}h1,h2,h3{margin-top:0}
+input{width:100%;padding:14px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;margin:10px 0 14px}
+button{border:0;border-radius:10px;padding:11px 16px;font-size:14px;cursor:pointer}
+.primary{background:#2563eb;color:#fff}.secondary{background:#64748b;color:#fff}.success{background:#16a34a;color:#fff}.warning{background:#d97706;color:#fff}
+button:disabled{opacity:.5;cursor:not-allowed}.topbar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap}
+.badge{padding:7px 10px;border-radius:999px;background:#e0e7ff;color:#3730a3;font-weight:bold}
+.progress{height:12px;background:#e2e8f0;border-radius:99px;overflow:hidden;flex:1;min-width:180px}.progress>div{height:100%;width:0;background:#16a34a;transition:.25s}
+.layout{display:grid;grid-template-columns:330px 1fr;gap:16px}.bug-item{border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:9px;cursor:pointer;background:#f8fafc}
+.bug-item.active{border-color:#2563eb;background:#eff6ff}.bug-item.fixed{border-color:#86efac;background:#f0fdf4}
+.bug-title{font-weight:bold}.bug-status{font-size:12px;margin-top:4px;color:#64748b}
+.error-box{background:#fff7ed;border:1px solid #fdba74;border-radius:12px;padding:12px;margin-bottom:12px}
+.editor{width:100%;min-height:430px;resize:vertical;background:#0f172a;color:#e2e8f0;border:0;border-radius:12px;padding:15px;font:13px/1.55 Consolas,monospace;outline:none}
+.editor:focus{box-shadow:0 0 0 3px rgba(37,99,235,.18)}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.feedback{padding:11px;border-radius:10px;margin-top:10px}.ok{background:#dcfce7;color:#166534}.no{background:#fee2e2;color:#991b1b}.info{background:#e0f2fe;color:#075985}
+.preview{margin-top:16px;border:1px solid #cbd5e1;border-radius:12px;overflow:hidden;background:#fff}.preview-head{padding:10px 12px;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-weight:bold}
+iframe{width:100%;height:360px;border:0}.result-card{text-align:center}.big{font-size:54px;font-weight:bold;color:#2563eb}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.stat{padding:14px;background:#f8fafc;border-radius:12px}.small{font-size:13px;color:#64748b}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.summary{grid-template-columns:1fr 1fr}.editor{min-height:360px}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<section id="startScreen" class="card start-card">
+<h1>🐞 CSS Debugging Challenge</h1>
+<p>Perbaiki 10 bug pada kode HTML + CSS. Setiap bug bernilai <b>10%</b>.</p>
+<p class="small">Materi: selector, warna, font-size, padding, margin, border, border-radius, background, dan Box Model.</p>
+<label><b>Nama Siswa</b></label>
+<input id="studentName" type="text" placeholder="Masukkan nama lengkap">
+<button id="startBtn" class="primary">Mulai Debugging</button>
+</section>
+
+<section id="gameScreen" class="hidden">
+<div class="topbar">
+<div><b>CSS Debugging</b> — <span id="nameLabel"></span></div>
+<div class="badge" id="progressText">0%</div>
+<div class="progress"><div id="progressBar"></div></div>
+</div>
+<div class="layout">
+<aside class="panel">
+<h3>🐞 Daftar Error</h3>
+<div id="bugList"></div>
+<div class="actions">
+<button id="sendProgressBtn" class="warning">📤 Kirim Progress</button>
+<button id="runBtn" class="success" disabled>▶ Jalankan Game</button>
+</div>
+<div id="saveStatus" class="feedback info">Belum ada hasil yang dikirim.</div>
+</aside>
+
+<main class="panel">
+<div class="error-box">
+<b id="bugHeading">Pilih bug</b>
+<p id="bugExplanation">Pilih salah satu error di sebelah kiri. Baca penjelasannya, lalu perbaiki kode pada editor.</p>
+<p class="small" id="bugHint"></p>
+</div>
+<label><b>Editor Code</b></label>
+<textarea id="codeEditor" class="editor" spellcheck="false"></textarea>
+<div class="actions">
+<button id="checkBtn" class="primary">🔍 Periksa Perbaikan</button>
+<button id="resetBtn" class="secondary">↩ Kembalikan Kode Awal</button>
+</div>
+<div id="checkFeedback" class="feedback hidden"></div>
+<div class="preview">
+<div class="preview-head">Preview — aktif setelah progress 100%</div>
+<iframe id="previewFrame" sandbox="allow-scripts"></iframe>
+</div>
+</main>
+</div>
+</section>
+
+<section id="resultScreen" class="hidden">
+<div class="card result-card">
+<h2>🎉 Semua Bug Berhasil Diperbaiki!</h2>
+<p>Selamat, <b id="resultName"></b>.</p>
+<div class="big">100%</div>
+<p>Kode sudah lolos seluruh pemeriksaan dan game dapat dijalankan.</p>
+<div class="summary">
+<div class="stat"><b>10/10</b><br><span class="small">Bug diperbaiki</span></div>
+<div class="stat"><b>100%</b><br><span class="small">Progress</span></div>
+<div class="stat"><b>Otomatis tersimpan</b><br><span class="small">Google Sheets</span></div>
+</div>
+<button id="finalRunBtn" class="success">▶ Jalankan Game</button>
+<button id="restartBtn" class="secondary">🔄 Mulai Lagi</button>
+<div id="autoSaveStatus" class="feedback info">Menyimpan hasil 100%...</div>
+</div>
+</section>
+</div>
+
+<script>
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwLbakc0lcJzGUMl0gdBW2H5tSqf3glE1yu_Qt8TyhaPsiTBStHEIqZufdPjIMrFDbF6w/exec;
+
+const initialCode = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background-color: #eef2ff;
+  padding: 20px;
+}
+
+#card {
+  width: 320px;
+  color: white;
+  background-color: #2563eb;
+  padding: 20;
+  border: 2px solid #1e3a8a;
+  border-radius: 8px;
+  margin: 20px;
+}
+
+#title {
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.description {
+  font-size: 14px;
+  margin: 10px;
+}
+
+.button {
+  background: blue;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 4px;
+}
+</style>
+</head>
+<body>
+<div id="card">
+  <h2 id="title">Kartu Profil Siswa</h2>
+  <p class="description">Belajar CSS dengan metode debugging.</p>
+  <button class="button">Mulai Game</button>
+</div>
+</body>
+</html>`;
+
+const bugs = [
+{title:"Bug 1 — Selector kartu",explanation:"Kartu profil harus dipilih menggunakan ID #card. Selector ID ditulis dengan tanda pagar (#).",hint:"Periksa selector untuk kartu profil.",test:c=>/#card\s*\{/.test(c)},
+{title:"Bug 2 — Warna latar kartu",explanation:"Kartu harus memiliki latar biru menggunakan properti background-color.",hint:"Cari bagian background kartu.",test:c=>/#card[\s\S]*?background-color\s*:\s*#2563eb\s*;/.test(c)},
+{title:"Bug 3 — Padding kartu",explanation:"Padding memberi ruang di dalam border. Nilai CSS membutuhkan satuan, misalnya px.",hint:"20 saja bukan nilai panjang yang valid. Gunakan 20px.",test:c=>/#card[\s\S]*?padding\s*:\s*20px\s*;/.test(c)},
+{title:"Bug 4 — Sudut kartu",explanation:"Border-radius digunakan untuk membuat sudut kotak membulat.",hint:"Gunakan nilai 12px pada border-radius kartu.",test:c=>/#card[\s\S]*?border-radius\s*:\s*12px\s*;/.test(c)},
+{title:"Bug 5 — Jarak luar kartu",explanation:"Margin adalah jarak di luar elemen. Pada kartu ini gunakan margin 20px.",hint:"Cari properti margin pada #card.",test:c=>/#card[\s\S]*?margin\s*:\s*20px\s*;/.test(c)},
+{title:"Bug 6 — Ukuran judul",explanation:"Properti font-size mengatur ukuran teks. Judul harus berukuran 24px.",hint:"Ubah font-size judul menjadi 24px.",test:c=>/#title[\s\S]*?font-size\s*:\s*24px\s*;/.test(c)},
+{title:"Bug 7 — Warna judul",explanation:"Properti color mengatur warna teks. Judul harus berwarna putih.",hint:"Gunakan color: #ffffff pada #title.",test:c=>/#title[\s\S]*?color\s*:\s*#ffffff\s*;/.test(c)},
+{title:"Bug 8 — Jarak deskripsi",explanation:"Class selector menggunakan titik. Deskripsi harus memiliki margin 12px.",hint:"Cari .description dan ubah margin menjadi 12px.",test:c=>/\.description\s*\{[\s\S]*?margin\s*:\s*12px\s*;/.test(c)},
+{title:"Bug 9 — Latar tombol",explanation:"background-color digunakan untuk warna latar tombol. Tombol harus berwarna #16a34a.",hint:"Ubah background tombol menjadi #16a34a.",test:c=>/\.button\s*\{[\s\S]*?background-color\s*:\s*#16a34a\s*;/.test(c)},
+{title:"Bug 10 — Sudut tombol",explanation:"Tombol perlu sudut membulat dengan border-radius 10px.",hint:"Ubah border-radius tombol menjadi 10px.",test:c=>/\.button\s*\{[\s\S]*?border-radius\s*:\s*10px\s*;/.test(c)}
+];
+
+let student="",code=initialCode,fixed=Array(10).fill(false),selectedBug=0,autoSaved=false;
+const $=id=>document.getElementById(id);
+
+$("startBtn").onclick=startGame;
+$("checkBtn").onclick=checkCurrentBug;
+$("resetBtn").onclick=resetCode;
+$("sendProgressBtn").onclick=sendProgress;
+$("runBtn").onclick=runGame;
+$("finalRunBtn").onclick=runGame;
+$("restartBtn").onclick=()=>location.reload();
+
+function startGame(){
+ const name=$("studentName").value.trim();
+ if(!name){alert("Masukkan nama terlebih dahulu.");return}
+ student=name;$("nameLabel").textContent=student;
+ $("startScreen").classList.add("hidden");$("gameScreen").classList.remove("hidden");
+ code=initialCode;fixed.fill(false);selectedBug=0;renderBugList();showBug(0);updateProgress();
+}
+function renderBugList(){
+ $("bugList").innerHTML=bugs.map((b,i)=>`<div class="bug-item ${selectedBug===i?"active":""} ${fixed[i]?"fixed":""}" data-i="${i}"><div class="bug-title">${i+1}. ${b.title.replace(/^Bug \d+ — /,"")}</div><div class="bug-status">${fixed[i]?"✅ Diperbaiki":"❌ Belum diperbaiki"}</div></div>`).join("");
+ document.querySelectorAll(".bug-item").forEach(el=>el.onclick=()=>showBug(Number(el.dataset.i)));
+}
+function showBug(i){
+ selectedBug=i;$("codeEditor").value=code;$("bugHeading").textContent=bugs[i].title;$("bugExplanation").textContent=bugs[i].explanation;$("bugHint").textContent="Petunjuk: "+bugs[i].hint;$("checkFeedback").className="feedback hidden";renderBugList();
+}
+$("codeEditor").addEventListener("input",()=>code=$("codeEditor").value);
+
+function checkCurrentBug(){
+ code=$("codeEditor").value;const b=bugs[selectedBug];
+ if(b.test(code)){fixed[selectedBug]=true;$("checkFeedback").className="feedback ok";$("checkFeedback").textContent="✅ Benar! Bug ini sudah diperbaiki."}
+ else{$("checkFeedback").className="feedback no";$("checkFeedback").textContent="❌ Masih belum tepat. Baca penjelasan dan petunjuk, lalu periksa kembali kode."}
+ renderBugList();updateProgress();
+}
+function resetCode(){code=initialCode;$("codeEditor").value=code;fixed.fill(false);selectedBug=0;renderBugList();showBug(0);updateProgress()}
+function updateProgress(){
+ const p=fixed.filter(Boolean).length*10;$("progressText").textContent=p+"%";$("progressBar").style.width=p+"%";$("runBtn").disabled=p!==100;
+ if(p===100)autoComplete();
+}
+function autoComplete(){
+ if(autoSaved)return;autoSaved=true;sendResult(true);
+ setTimeout(()=>{$("gameScreen").classList.add("hidden");$("resultScreen").classList.remove("hidden");$("resultName").textContent=student},350);
+}
+function runGame(){
+ if(fixed.filter(Boolean).length!==10){alert("Game belum dapat dijalankan. Perbaiki semua 10 bug sampai 100%.");return}
+ $("previewFrame").srcdoc=code;$("previewFrame").scrollIntoView({behavior:"smooth",block:"center"});
+}
+function sendProgress(){sendResult(false)}
+function sendResult(isAutomatic){
+ const p=fixed.filter(Boolean).length*10;
+ const payload={nama:student,progress:p,bugDiperbaiki:fixed.map((v,i)=>({bug:i+1,status:v?"Benar":"Belum"})),jumlahBenar:fixed.filter(Boolean).length,totalBug:10,status:p===100?"SELESAI_100_AUTO":"PROGRESS_MANUAL",waktu:new Date().toISOString()};
+ const el=isAutomatic?$("autoSaveStatus"):$("saveStatus");
+ if(!GOOGLE_SCRIPT_URL||GOOGLE_SCRIPT_URL.includes("PASTE_URL")){el.className="feedback no";el.textContent="Mode demo: URL Apps Script belum dimasukkan.";return}
+ el.className="feedback info";el.textContent=isAutomatic?"Menyimpan hasil 100%...":"Mengirim progress...";
+ fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)})
+ .then(()=>{el.className="feedback ok";el.textContent=isAutomatic?"✓ Progress 100% tersimpan otomatis di Google Sheets.":"✓ Progress berhasil dikirim ke Google Sheets."})
+ .catch(e=>{console.error(e);el.className="feedback no";el.textContent="❌ Pengiriman gagal. Periksa URL Apps Script dan deployment Web App."});
+}
+</script>
+</body>
+</html>
